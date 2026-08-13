@@ -4,12 +4,12 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'four_fingerprint'
-  s.version          = '0.0.1'
-  s.summary          = 'A new Flutter FFI plugin project.'
+  s.version          = '1.0.0'
+  s.summary          = 'Contactless slap fingerprint capture plugin — 4-4-2 sequencing, minutiae extraction, and matching via phone camera.'
   s.description      = <<-DESC
-A new Flutter FFI plugin project.
+Captures four-finger slap images via phone camera and produces match-ready fingerprint templates.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/your-repo/four_fingerprint'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
 

@@ -1,99 +1,73 @@
 # four_fingerprint
 
-Contactless slap fingerprint capture Flutter plugin — captures four-finger slap images via phone camera and produces match-ready fingerprint templates, comparable to BioPassID SLAP / Sciometrics SlapShot.
+Contactless slap fingerprint capture for Flutter — 4-4-2 sequencing, minutiae extraction, and matching via phone camera.
 
-## Features
+## Installation
 
-- **4-4-2 capture sequencing** — left four-finger slap → right four-finger slap → two thumbs
-- **Scale/DPI calibration** — anthropometric finger-width priors resample to 500 PPI
-- **Finger segmentation** — YCrCb skin-color mask with landmark-guided ROI
-- **Illumination normalization** — CLAHE + specular highlight removal
-- **Cylindrical unwarping** — finger surface flattening for ridge analysis
-- **Liveness gate** — FFT-based texture check (real skin vs print/screen)
-- **Burst capture** — 8-frame burst with NFIQ2-style best-frame selection
-- **Minutiae extraction** — ridge thinning + crossing-number minutiae detection
-- **Template matching** — BOZORTH3-inspired matcher with recalibrated contactless threshold
-- **ISO/IEC 19794-2 export** — interoperable minutiae templates
-- **WSQ compression** — fingerprint image storage
-- **Encrypted storage** — AES-GCM templates at rest via `flutter_secure_storage`
-
-## Architecture
-
+```yaml
+dependencies:
+  four_fingerprint: ^1.0.0
 ```
-lib/
-  four_fingerprint.dart          # Public API
-  src/
-    fp_constants.dart            # Enums, finger codes, thresholds
-    fp_models.dart               # Dart data models
-    fp_native.dart               # FFI bridge (runs on background isolate)
-    fp_capture_controller.dart   # 4-4-2 capture state machine
-    fp_storage.dart              # Encrypted template storage
 
-src/                             # Native C processing pipeline
-  fp_calibration.c
-  fp_segmentation.c
-  fp_illumination.c
-  fp_unwarp.c
-  fp_liveness.c
-  fp_quality.c
-  fp_minutiae.c
-  fp_matching.c
-  fp_iso19794.c
-  fp_wsq.c
-  fp_crypto.c
-  fp_state_machine.c
-  fp_pipeline.c
-```
+Run `flutter pub get`.
 
 ## Usage
 
 ```dart
 import 'package:four_fingerprint/four_fingerprint.dart';
+import 'package:camera/camera.dart';
 
 await FourFingerprint.instance.initialize();
 
 final controller = FpCaptureController();
 await controller.initialize();
+
+// Set up camera
+final back = (await availableCameras()).firstWhere(
+  (c) => c.lensDirection == CameraLensDirection.back,
+);
+final cam = CameraController(back, ResolutionPreset.medium);
+await cam.initialize();
+
+// Start 4-4-2 capture
 controller.startCapture();
+cam.startImageStream((image) async {
+  await controller.processFrame(image);
+});
 
-// Feed camera frames during capture
-await controller.processFrame(cameraImage);
-
-// After 4-4-2 complete
+// Save enrollment
 final enrollment = controller.buildEnrollment('user_001');
 await FpSecureStorage().storeEnrollment(enrollment!);
 ```
 
-## Building native code
+## Screenshots
 
-```bash
-cd src && mkdir -p build && cd build
-cmake .. && make
-```
+<table>
+  <tr>
+    <td><img src="screenshots/left_slap.png" width="200"></td>
+    <td><img src="screenshots/right_slap.png" width="200"></td>
+    <td><img src="screenshots/thumbs.png" width="200"></td>
+  </tr>
+</table>
 
-Regenerate FFI bindings:
+## API
 
-```bash
-dart run ffigen --config ffigen.yaml
-```
+| Class | Purpose |
+|-------|---------|
+| `FourFingerprint` | Plugin entry point. Initializes native processing. |
+| `FpCaptureController` | 4-4-2 capture state machine with burst frame selection. |
+| `FpSecureStorage` | Encrypted template storage via `flutter_secure_storage`. |
+| `FpEnrollmentRecord` | Enrollment data model. |
+| `FpMatchResult` | Verification result with score and match decision. |
 
-## Third-party components
+## Platform support
 
-- OpenCV (bundled in `third_party/opencv` for Android/iOS)
-- NBIS sources in `third_party/nbis` (MINDTCT, BOZORTH3, WSQ — optional full link)
-- NFIQ2 sources in `third_party/nfiq2` (optional full link)
-- Hand landmarks via `hand_detection` package (MediaPipe-style TFLite)
-
-## Match threshold
-
-Contactless captures use a recalibrated match threshold of **25** (vs NBIS default ~40 for ink scans). Tune against your own dataset for production FAR/FRR targets.
-
-## Example app
-
-```bash
-cd example && flutter run
-```
+| Platform | Supported |
+|----------|-----------|
+| Android  | Yes |
+| iOS      | Yes |
+| Linux    | Yes (requires system OpenCV) |
 
 ## Compliance
 
-For enterprise KYC or law-enforcement deployment, benchmark against [NIST SP 500-399](https://www.nist.gov/publications/sp-500-399-contactless-fingerprint-capture-device-compliance) (contactless fingerprint acquisition standard).
+For enterprise KYC or law-enforcement deployment, benchmark against [NIST SP 500-399](https://www.nist.gov/publications/sp-500-399-contactless-fingerprint-capture-device-compliance).
