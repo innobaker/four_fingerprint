@@ -1,0 +1,34 @@
+name: four_fingerprint
+description: Contactless slap fingerprint capture plugin — 4-4-2 sequencing, minutiae extraction, and matching via phone camera.
+version: 1.0.0
+homepage:
+
+environment:
+  sdk: ^3.12.2
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.3
+  plugin_platform_interface: ^2.0.2
+  camera: ^0.11.1
+  hand_detection: ^4.1.0
+  flutter_secure_storage: ^9.2.4
+  collection: ^1.19.1
+
+dev_dependencies:
+  ffigen: ^20.1.1
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      ios:
+        ffiPlugin: true
+      linux:
+        ffiPlugin: true
