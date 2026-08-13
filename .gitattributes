@@ -1,3 +1,6 @@
+third_party/opencv/**/*.framework filter=lfs diff=lfs merge=lfs -text
+third_party/opencv/**/*.a filter=lfs diff=lfs merge=lfs -text
+third_party/opencv/**/*.so filter=lfs diff=lfs merge=lfs -text
 third_party/opencv/ios/opencv2.framework/Versions/A/opencv2 filter=lfs diff=lfs merge=lfs -text
 third_party/opencv/android/sdk/native/3rdparty/libs/x86_64/libippicv.a filter=lfs diff=lfs merge=lfs -text
 third_party/opencv/android/sdk/native/libs/x86_64/libopencv_java4.so filter=lfs diff=lfs merge=lfs -text
