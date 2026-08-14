@@ -2,6 +2,8 @@
  * four_fingerprint.h - Contactless Slap Fingerprint Capture Plugin
  *
  * Public C API for FFI binding.
+ *
+ * Quality scores use NFIQ2 unified scale: 0 (worst) – 100 (best).
  ******************************************************************************/
 
 #ifndef FOUR_FINGERPRINT_H
@@ -50,12 +52,12 @@ extern "C" {
 #define FP_EVENT_THUMBS_DONE       3
 #define FP_EVENT_RESET             4
 
-/* Quality scores (NFIQ2 1=Best, 5=Worst) */
-#define FP_QUALITY_EXCELLENT       1
-#define FP_QUALITY_GOOD            2
-#define FP_QUALITY_FAIR            3
-#define FP_QUALITY_POOR            4
-#define FP_QUALITY_UNCLASSIFIABLE  5
+/* Quality score categories (NFIQ2 unified 0-100 scale) */
+#define FP_QUALITY_EXCELLENT       85
+#define FP_QUALITY_GOOD            70
+#define FP_QUALITY_FAIR            50
+#define FP_QUALITY_POOR            25
+#define FP_QUALITY_UNCLASSIFIABLE  0
 
 /* Return codes */
 #define FP_OK                       0
@@ -78,7 +80,7 @@ typedef struct {
 
 typedef struct {
     int32_t finger_code;
-    int32_t quality_score;
+    int32_t quality_score;      /* NFIQ2 0-100 unified score */
     int32_t minutia_count;
     int32_t is_live;
     int32_t resolution_ppi;
@@ -114,7 +116,7 @@ typedef struct {
 
 typedef struct {
     int32_t finger_code;
-    int32_t quality_score;
+    int32_t quality_score;      /* NFIQ2 0-100 unified score */
     int32_t minutia_count;
     int32_t is_live;
     int32_t resolution_ppi;
@@ -170,7 +172,7 @@ int32_t fp_check_liveness(
     int32_t *out_is_live
 );
 
-/* 6. NFIQ2 quality assessment */
+/* 6. NFIQ2 quality assessment (0-100 unified scale) */
 int32_t fp_init_nfiq2(const char *model_dir);
 int32_t fp_assess_quality(
     const uint8_t *grayscale_img, int32_t width, int32_t height,
@@ -178,7 +180,7 @@ int32_t fp_assess_quality(
     int32_t *out_quality_score
 );
 
-/* 7. Minutiae extraction (MINDTCT) */
+/* 7. Minutiae extraction (NBIS MINDTCT) */
 int32_t fp_extract_minutiae(
     const uint8_t *grayscale_img, int32_t width, int32_t height,
     int32_t ppi,
@@ -186,7 +188,7 @@ int32_t fp_extract_minutiae(
     int32_t *out_num_minutiae
 );
 
-/* 8. Template matching (BOZORTH3) */
+/* 8. Template matching (NBIS BOZORTH3) */
 int32_t fp_match_templates(
     const FpMinutia *probe, int32_t probe_count,
     const FpMinutia *gallery, int32_t gallery_count,
@@ -268,6 +270,40 @@ void fp_free_processed_finger(FpProcessedFinger *finger);
 
 /* 17. Version info */
 const char *fp_get_version(void);
+
+/* 18. Guidance / UI hints */
+typedef struct {
+    int32_t hand_distance;      /* 0=too_near, 1=ok, 2=too_far */
+    int32_t finger_alignment;   /* 0=not_detected, 1=partial, 2=good, 3=overlapping */
+    int32_t stability;          /* 0=unstable, 1=settling, 2=stable */
+    char message[128];
+    int32_t num_rects;
+} FpGuidanceResult;
+
+typedef struct {
+    float x, y, width, height;
+    char label[32];
+    char status[32];
+} FpGuidanceRect;
+
+int32_t fp_assess_guidance(
+    const uint8_t *rgb_frame, int32_t width, int32_t height,
+    const float *hand_landmarks, int32_t landmark_count,
+    const int32_t *finger_codes, int32_t num_fingers,
+    FpGuidanceResult *out_guidance,
+    FpGuidanceRect *out_rects, int32_t max_rects
+);
+
+/* 19. Countdown / capture timing */
+int32_t fp_start_countdown(int32_t seconds);
+int32_t fp_get_countdown_remaining(void);
+int32_t fp_is_countdown_finished(void);
+
+/* 20. Ring mode control */
+#define FP_RING_MODE_DYNAMIC  0
+#define FP_RING_MODE_STATIC   1
+
+int32_t fp_set_ring_mode(int32_t mode);
 
 #ifdef __cplusplus
 }

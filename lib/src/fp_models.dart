@@ -98,6 +98,40 @@ class FpMatchResult {
   final FingerCode fingerCode;
 }
 
+class FpGuidanceData {
+  const FpGuidanceData({
+    required this.handDistance,
+    required this.fingerAlignment,
+    required this.stability,
+    required this.message,
+    required this.guidanceRects,
+  });
+
+  final HandDistance handDistance;
+  final FingerAlignment fingerAlignment;
+  final StabilityStatus stability;
+  final String message;
+  final List<FpGuideRect> guidanceRects;
+}
+
+class FpGuideRect {
+  const FpGuideRect({
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    required this.label,
+    required this.status,
+  });
+
+  final double x;
+  final double y;
+  final double width;
+  final double height;
+  final String label;
+  final String status;
+}
+
 extension _FirstOrNull<E> on Iterable<E> {
   E? get firstOrNull {
     final it = iterator;

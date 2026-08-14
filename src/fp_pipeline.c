@@ -58,13 +58,13 @@ int32_t fp_process_finger(
         return FP_ERR_LIVENESS_FAILED;
     }
 
-    int32_t quality = 5;
+    int32_t quality = 0;
     fp_assess_quality(unwarped, out_w, out_h, FP_TARGET_PPI, finger_code, &quality);
     out_finger->quality_score = quality;
 
     static FpMinutia minutiae_buf[200];
     int32_t minutia_count = 0;
-    int32_t ret = fp_extract_minutiae(unwarped, out_w, out_h, FP_TARGET_PPI,
+    int32_t ret = fp_nbis_extract_minutiae(unwarped, out_w, out_h, FP_TARGET_PPI,
                                        minutiae_buf, 200, &minutia_count);
     if (ret != FP_OK) {
         free(gray); free(crop); free(norm); free(unwarped);
@@ -117,6 +117,9 @@ int32_t fp_process_slap_frame(
     }
 
     memset(out_result, 0, sizeof(FpSlapResult));
+
+    fp_nbis_init();
+    fp_nfiq2_init(NULL);
 
     float scale_factor = 1.0f;
     int32_t num_fingers = 4;

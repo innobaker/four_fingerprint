@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'fp_constants.dart';
 import 'fp_models.dart';
 import 'fp_native.dart';
 
@@ -40,10 +41,22 @@ class FpSecureStorage {
       'enrolledAt': record.enrolledAt.toIso8601String(),
       'fingers': record.fingers.map((f) {
         return {
-          ...f.toJson(),
-          'isoTemplate': f.isoTemplate != null
-              ? base64Encode(f.isoTemplate!)
-              : null,
+          'fingerCode': f.fingerCode.code,
+          'quality': f.quality.score,
+          'isLive': f.isLive.value,
+          'resolutionPpi': f.resolutionPpi,
+          'scaleFactor': f.scaleFactor,
+          'isoTemplate':
+              f.isoTemplate != null ? base64Encode(f.isoTemplate!) : null,
+          'minutiae': f.minutiae
+              .map((m) => {
+                    'x': m.x,
+                    'y': m.y,
+                    'direction': m.direction,
+                    'type': m.type.value,
+                    'reliability': m.reliability,
+                  })
+              .toList(),
         };
       }).toList(),
     });
@@ -67,10 +80,38 @@ class FpSecureStorage {
       _cachedKey!,
     );
     final map = jsonDecode(utf8.decode(decrypted)) as Map<String, dynamic>;
+    final fingers = <FpFingerCapture>[];
+    for (final f in (map['fingers'] as List? ?? const [])) {
+      final fm = f as Map<String, dynamic>;
+      final minutiae = <FpMinutiaPoint>[];
+      for (final m in (fm['minutiae'] as List? ?? const [])) {
+        final mm = m as Map<String, dynamic>;
+        minutiae.add(FpMinutiaPoint(
+          x: mm['x'] as int,
+          y: mm['y'] as int,
+          direction: mm['direction'] as int,
+          type: (mm['type'] as int) == 0
+              ? MinutiaType.bifurcation
+              : MinutiaType.ridgeEnding,
+          reliability: (mm['reliability'] as num).toDouble(),
+        ));
+      }
+      final isoB64 = fm['isoTemplate'] as String?;
+      fingers.add(FpFingerCapture(
+        fingerCode: FingerCode.fromCode(fm['fingerCode'] as int),
+        quality: FpQuality.fromScore(fm['quality'] as int? ?? 5),
+        minutiae: minutiae,
+        isLive: LivenessResult.fromValue(fm['isLive'] as int? ?? -1),
+        resolutionPpi: fm['resolutionPpi'] as int? ?? kTargetPpi,
+        scaleFactor: (fm['scaleFactor'] as num?)?.toDouble() ?? 1.0,
+        isoTemplate: isoB64 != null ? base64Decode(isoB64) : null,
+      ));
+    }
+
     return FpEnrollmentRecord(
       subjectId: map['subjectId'] as String,
       enrolledAt: DateTime.parse(map['enrolledAt'] as String),
-      fingers: const [],
+      fingers: fingers,
     );
   }
 

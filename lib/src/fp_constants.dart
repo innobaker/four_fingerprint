@@ -59,6 +59,49 @@ enum CaptureStep {
       );
 }
 
+enum HandDistance {
+  tooNear(0),
+  ok(1),
+  tooFar(2);
+
+  const HandDistance(this.value);
+  final int value;
+
+  static HandDistance fromValue(int v) => HandDistance.values.firstWhere(
+        (e) => e.value == v,
+        orElse: () => ok,
+      );
+}
+
+enum FingerAlignment {
+  notDetected(0),
+  partial(1),
+  good(2),
+  overlapping(3);
+
+  const FingerAlignment(this.value);
+  final int value;
+
+  static FingerAlignment fromValue(int v) => FingerAlignment.values.firstWhere(
+        (e) => e.value == v,
+        orElse: () => notDetected,
+      );
+}
+
+enum StabilityStatus {
+  unstable(0),
+  settling(1),
+  stable(2);
+
+  const StabilityStatus(this.value);
+  final int value;
+
+  static StabilityStatus fromValue(int v) => StabilityStatus.values.firstWhere(
+        (e) => e.value == v,
+        orElse: () => unstable,
+      );
+}
+
 enum CaptureEvent {
   start(0),
   leftSlapDone(1),
@@ -71,19 +114,22 @@ enum CaptureEvent {
 }
 
 enum FpQuality {
-  excellent(1),
-  good(2),
-  fair(3),
-  poor(4),
-  unclassifiable(5);
+  excellent(85),
+  good(70),
+  fair(50),
+  poor(25),
+  unclassifiable(0);
 
   const FpQuality(this.score);
   final int score;
 
-  static FpQuality fromScore(int s) => FpQuality.values.firstWhere(
-        (e) => e.score == s,
-        orElse: () => unclassifiable,
-      );
+  static FpQuality fromScore(int s) {
+    if (s >= 85) return FpQuality.excellent;
+    if (s >= 70) return FpQuality.good;
+    if (s >= 50) return FpQuality.fair;
+    if (s >= 25) return FpQuality.poor;
+    return FpQuality.unclassifiable;
+  }
 }
 
 /// Native return codes.
@@ -115,7 +161,6 @@ const int kTargetPpi = 500;
 const int kBurstFrameCount = 8;
 const int kLandmarkCount = 21;
 
-/// Finger codes for each capture step in 4-4-2 sequencing.
 const leftSlapFingerCodes = [
   FingerCode.leftIndex,
   FingerCode.leftMiddle,

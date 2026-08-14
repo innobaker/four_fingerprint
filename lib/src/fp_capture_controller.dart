@@ -1,141 +1,253 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hand_detection/hand_detection.dart';
 
+import 'finger_detector.dart';
 import 'fp_constants.dart';
 import 'fp_models.dart';
 import 'fp_native.dart';
+import 'fp_storage.dart';
+import 'mediapipe_hands.dart';
+import 'scan_options.dart';
 
-/// 4-4-2 slap capture flow state machine with burst frame selection.
 class FpCaptureController extends ChangeNotifier {
-  FpCaptureController({FpNativeBridge? bridge})
-      : _bridge = bridge ?? FpNativeBridge.instance;
+  FpCaptureController({
+    FpNativeBridge? bridge,
+    FpSecureStorage? storage,
+    FingerDetector? detector,
+    MediaPipeHands? mediaPipe,
+  })  : _bridge = bridge ?? FpNativeBridge.instance,
+        _storage = storage ?? FpSecureStorage(),
+        _detector = detector ?? FingerDetector(),
+        _mediaPipe = mediaPipe ?? MediaPipeHands();
 
   final FpNativeBridge _bridge;
-  final FpStateMachine _state = FpStateMachine();
+  final FpSecureStorage _storage;
+  final FingerDetector _detector;
+  final MediaPipeHands _mediaPipe;
 
   CaptureStep _step = CaptureStep.idle;
   bool _initialized = false;
   bool _processing = false;
+  bool _capturing = false;
   String? _statusMessage;
+  FingerGuideResult? _guide;
+  SlapScanOptions? _options;
+  List<CaptureStage> _stages = const [];
+  int _stageIndex = 0;
   final List<FpFingerCapture> _capturedFingers = [];
-  final List<Uint8List> _burstBuffer = [];
-
-  HandDetector? _handDetector;
+  int _countdownRemaining = 0;
+  bool _countdownActive = false;
+  Timer? _countdownTimer;
 
   CaptureStep get step => _step;
-  bool get isProcessing => _processing;
+  bool get isProcessing => _processing || _capturing;
   String? get statusMessage => _statusMessage;
-  List<FpFingerCapture> get capturedFingers => List.unmodifiable(_capturedFingers);
-  List<FingerCode> get currentFingerCodes => switch (_step) {
-        CaptureStep.leftSlap => leftSlapFingerCodes,
-        CaptureStep.rightSlap => rightSlapFingerCodes,
-        CaptureStep.thumbs => thumbsFingerCodes,
-        _ => const [],
-      };
+  FingerGuideResult? get guide => _guide;
+  FingerDetector get fingerDetector => _detector;
+  CaptureProfile get profile =>
+      _options?.effectiveProfile ?? CaptureProfile.fourFour;
+  List<CaptureStage> get stages => List.unmodifiable(_stages);
+  int get stageIndex => _stageIndex;
+  CaptureStage? get currentStage =>
+      (_stageIndex >= 0 && _stageIndex < _stages.length)
+          ? _stages[_stageIndex]
+          : null;
+  List<FpFingerCapture> get capturedFingers =>
+      List.unmodifiable(_capturedFingers);
+  int get countdownRemaining => _countdownRemaining;
+  bool get countdownActive => _countdownActive;
 
-  String get stepInstruction => switch (_step) {
-        CaptureStep.idle => 'Tap Start to begin fingerprint enrollment',
-        CaptureStep.leftSlap => 'Place LEFT four fingers flat on a surface and hold steady',
-        CaptureStep.rightSlap => 'Place RIGHT four fingers flat on a surface and hold steady',
-        CaptureStep.thumbs => 'Place both THUMBS side by side and hold steady',
-        CaptureStep.processing => 'Processing fingerprints...',
-        CaptureStep.complete => 'Capture complete!',
-      };
+  List<FingerCode> get currentFingerCodes =>
+      currentStage?.fingerCodes ?? const [];
+
+  String get stepInstruction =>
+      currentStage?.label ??
+      (_step == CaptureStep.complete ? 'Done' : 'Ready to scan');
 
   Future<void> initialize() async {
     if (_initialized) return;
     await _bridge.initialize();
-    _handDetector = await HandDetector.create(
-      mode: HandMode.boxesAndLandmarks,
-    );
+    await _mediaPipe.initialize();
+    await _storage.initialize();
     _initialized = true;
     notifyListeners();
   }
 
-  void startCapture() {
-    _state.reset();
+  void startCapture({SlapScanOptions? options}) {
+    _options = options ??
+        const SlapScanOptions(
+          subjectId: 'anonymous',
+          storage: StorageMode.none,
+          profile: CaptureProfile.fourFour,
+        );
+    _stages = _options!.stages;
+    _stageIndex = 0;
     _capturedFingers.clear();
-    _burstBuffer.clear();
-    _step = CaptureStep.leftSlap;
+    _detector.clearCaptured();
+    _detector.resetStability();
+    _applyStage(0);
     _statusMessage = null;
+    _guide = null;
     notifyListeners();
   }
 
   void reset() {
-    _state.reset();
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+    _countdownActive = false;
+    _countdownRemaining = 0;
     _step = CaptureStep.idle;
+    _stages = const [];
+    _stageIndex = 0;
     _capturedFingers.clear();
-    _burstBuffer.clear();
+    _detector.clearCaptured();
+    _detector.resetStability();
     _statusMessage = null;
+    _guide = null;
+    _capturing = false;
     notifyListeners();
   }
 
-  /// Process a camera frame during active capture step.
+  void _applyStage(int index) {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+
+    if (index < 0 || index >= _stages.length) {
+      _step = CaptureStep.complete;
+      _detector.expectedHand = null;
+      _countdownActive = false;
+      _countdownRemaining = 0;
+      notifyListeners();
+      return;
+    }
+
+    _stageIndex = index;
+    final stage = _stages[index];
+    _step = stage.id;
+    _detector.expectedHand = switch (stage.expectedHand) {
+      'left' => HandednessHint.left,
+      'right' => HandednessHint.right,
+      _ => null,
+    };
+    _detector.resetStability();
+
+    int countdown = _options?.countdownSeconds ?? 3;
+    if (countdown > 0) {
+      _countdownActive = true;
+      _countdownRemaining = countdown;
+      notifyListeners();
+
+      _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        _countdownRemaining--;
+        if (_countdownRemaining <= 0) {
+          timer.cancel();
+          _countdownTimer = null;
+          _countdownActive = false;
+        }
+        notifyListeners();
+      });
+    } else {
+      _countdownActive = false;
+      _countdownRemaining = 0;
+    }
+    notifyListeners();
+  }
+
   Future<bool> processFrame(CameraImage image) async {
-    if (!_initialized || _processing) return false;
-    if (_step != CaptureStep.leftSlap &&
-        _step != CaptureStep.rightSlap &&
-        _step != CaptureStep.thumbs) {
+    if (!_initialized || _processing || _capturing) return false;
+    if (_step == CaptureStep.idle ||
+        _step == CaptureStep.complete ||
+        _step == CaptureStep.processing) {
       return false;
     }
+    if (currentStage == null) return false;
 
     _processing = true;
     try {
-      final rgb = _cameraImageToRgb(image);
-      final width = image.width;
-      final height = image.height;
+      final mp = await _mediaPipe.detectCameraImage(image);
+      final guide = _detector.evaluate(
+        landmarks: mp?.landmarks,
+        handedness: mp?.handedness ?? HandednessHint.unknown,
+        fingerCodes: currentFingerCodes,
+      );
+      _guide = guide;
+      _statusMessage = guide.message;
+      notifyListeners();
 
-      final landmarks = await _detectLandmarks(image);
-      if (landmarks == null) {
-        _statusMessage = 'No hand detected — adjust position';
-        return false;
+      final auto = _options?.autoCapture ?? true;
+      if (auto && guide.readyToCapture && !_countdownActive) {
+        return _captureNow(image, guide);
       }
+      return false;
+    } finally {
+      _processing = false;
+    }
+  }
+
+  Future<bool> _captureNow(CameraImage image, FingerGuideResult guide) async {
+    if (_capturing) return false;
+    _capturing = true;
+    _statusMessage = 'Capturing fingerprints…';
+    notifyListeners();
+
+    try {
+      final rgb = cameraImageToRgb(image);
+      final landmarks = guide.landmarks;
+      if (landmarks == null) return false;
 
       final live = await _bridge.checkLiveness(
-        grayscale: _toGrayscale(rgb),
-        width: width,
-        height: height,
+        grayscale: _toGray(rgb),
+        width: image.width,
+        height: image.height,
         landmarks: landmarks,
       );
       if (live == LivenessResult.notLive.value) {
-        _statusMessage = 'Liveness check failed — use real finger';
+        _statusMessage = 'Liveness failed — use a real hand';
+        _detector.resetStability();
         return false;
       }
-
-      _burstBuffer.add(rgb);
-      if (_burstBuffer.length < kBurstFrameCount) {
-        _statusMessage = 'Hold steady... ${_burstBuffer.length}/$kBurstFrameCount';
-        return false;
-      }
-
-      final bestIdx = await _selectBestBurstFrame(width, height);
-      final bestFrame = _burstBuffer[bestIdx];
-      _burstBuffer.clear();
 
       final result = await _bridge.processSlapFrame(
-        rgbFrame: bestFrame,
-        width: width,
-        height: height,
+        rgbFrame: rgb,
+        width: image.width,
+        height: image.height,
         landmarks: landmarks,
         fingerCodes: currentFingerCodes,
       );
 
-      if (!result.success) {
-        _statusMessage = 'Could not extract fingerprints — try again';
+      if (!result.success || result.fingers.isEmpty) {
+        _statusMessage = 'Extraction failed — try again';
+        _detector.resetStability();
         return false;
       }
 
-      _capturedFingers.addAll(result.fingers);
-      _advanceStep();
+      for (final f in result.fingers) {
+        _capturedFingers.add(f);
+        _detector.markCaptured(f.fingerCode);
+      }
+      _advanceStage();
       return true;
     } on FpException catch (e) {
       _statusMessage = e.toString();
+      _detector.resetStability();
       return false;
     } finally {
-      _processing = false;
+      _capturing = false;
       notifyListeners();
     }
+  }
+
+  void _advanceStage() {
+    final next = _stageIndex + 1;
+    if (next >= _stages.length) {
+      _step = CaptureStep.complete;
+      _statusMessage = 'Capture complete';
+      return;
+    }
+    _applyStage(next);
+    _statusMessage = currentStage?.label ?? 'Next…';
   }
 
   FpEnrollmentRecord? buildEnrollment(String subjectId) {
@@ -147,23 +259,63 @@ class FpCaptureController extends ChangeNotifier {
     );
   }
 
-  Future<FpMatchResult?> verifyAgainst({
-    required FpEnrollmentRecord enrollment,
-    required CameraImage image,
-    required FingerCode fingerCode,
-  }) async {
-    final rgb = _cameraImageToRgb(image);
-    final landmarks = await _detectLandmarks(image);
-    if (landmarks == null) return null;
+  Future<SlapScanResult> finish() async {
+    final opts = _options ??
+        const SlapScanOptions(
+          subjectId: 'anonymous',
+          storage: StorageMode.none,
+        );
+    final enrollment = buildEnrollment(opts.subjectId);
+    if (enrollment == null) {
+      return SlapScanResult(
+        subjectId: opts.subjectId,
+        mode: opts.mode,
+        success: false,
+        profile: opts.effectiveProfile,
+        error: 'Capture incomplete',
+      );
+    }
 
+    final templates = <String, Uint8List>{};
+    for (final f in enrollment.fingers) {
+      if (f.isoTemplate != null) {
+        templates[f.fingerCode.name] = f.isoTemplate!;
+      }
+    }
+
+    if (opts.storage == StorageMode.device || opts.storage == StorageMode.both) {
+      await _storage.storeEnrollment(enrollment);
+    }
+
+    return SlapScanResult(
+      subjectId: opts.subjectId,
+      mode: opts.mode,
+      success: true,
+      profile: opts.effectiveProfile,
+      enrollment: enrollment,
+      isoTemplates: templates,
+    );
+  }
+
+  Future<FpMatchResult?> authenticate({
+    required String subjectId,
+    required CameraImage image,
+    FingerCode fingerCode = FingerCode.rightIndex,
+  }) async {
+    final enrollment = await _storage.loadEnrollment(subjectId);
+    if (enrollment == null) return null;
+
+    final mp = await _mediaPipe.detectCameraImage(image);
+    if (mp == null) return null;
+
+    final rgb = cameraImageToRgb(image);
     final result = await _bridge.processSlapFrame(
       rgbFrame: rgb,
       width: image.width,
       height: image.height,
-      landmarks: landmarks,
+      landmarks: mp.landmarks,
       fingerCodes: [fingerCode],
     );
-
     final probe = result.fingers.firstOrNull?.minutiae ?? [];
     final gallery = enrollment.minutiaeFor(fingerCode);
     if (probe.isEmpty || gallery.isEmpty) return null;
@@ -176,89 +328,21 @@ class FpCaptureController extends ChangeNotifier {
     );
   }
 
-  void _advanceStep() {
-    switch (_step) {
-      case CaptureStep.leftSlap:
-        _step = CaptureStep.rightSlap;
-        break;
-      case CaptureStep.rightSlap:
-        _step = CaptureStep.thumbs;
-        break;
-      case CaptureStep.thumbs:
-        _step = CaptureStep.complete;
-        break;
-      default:
-        break;
-    }
-    _statusMessage = null;
-  }
-
-  Future<int> _selectBestBurstFrame(int width, int height) async {
-    var bestIdx = 0;
-    var bestQ = 999;
-    for (var i = 0; i < _burstBuffer.length; i++) {
-      final q = await _bridge.assessQuality(
-        grayscale: _toGrayscale(_burstBuffer[i]),
-        width: width,
-        height: height,
-      );
-      if (q.score < bestQ) {
-        bestQ = q.score;
-        bestIdx = i;
-      }
-    }
-    return bestIdx;
-  }
-
-  Future<Float32List?> _detectLandmarks(CameraImage image) async {
-    if (_handDetector == null) return null;
-    // hand_detection works on file paths; for live stream use normalized placeholder
-    // landmarks from camera center when detector unavailable on stream
-    return Float32List.fromList(_defaultLandmarks());
-  }
-
-  static List<double> _defaultLandmarks() {
-    final lm = List<double>.filled(kLandmarkCount * 3, 0.0);
-    const tips = [4, 8, 12, 16, 20];
-    for (var i = 0; i < tips.length; i++) {
-      final idx = tips[i];
-      lm[idx * 3] = 0.3 + i * 0.1;
-      lm[idx * 3 + 1] = 0.3;
-    }
-    return lm;
-  }
-
-  Uint8List _cameraImageToRgb(CameraImage image) {
-    final plane = image.planes.first;
-    final rgb = Uint8List(image.width * image.height * 3);
-    for (var i = 0; i < image.width * image.height; i++) {
-      final y = plane.bytes[i];
-      rgb[i * 3] = y;
-      rgb[i * 3 + 1] = y;
-      rgb[i * 3 + 2] = y;
-    }
-    return rgb;
-  }
-
-  Uint8List _toGrayscale(Uint8List rgb) {
+  Uint8List _toGray(Uint8List rgb) {
     final gray = Uint8List(rgb.length ~/ 3);
     for (var i = 0; i < gray.length; i++) {
-      gray[i] = rgb[i * 3];
+      gray[i] =
+          ((77 * rgb[i * 3] + 150 * rgb[i * 3 + 1] + 29 * rgb[i * 3 + 2]) >> 8);
     }
     return gray;
   }
 
   @override
   void dispose() {
-    _handDetector?.dispose();
+    _countdownTimer?.cancel();
+    unawaited(_mediaPipe.dispose());
     super.dispose();
   }
-}
-
-class FpStateMachine {
-  CaptureStep step = CaptureStep.idle;
-
-  void reset() => step = CaptureStep.idle;
 }
 
 extension _FirstOrNull<E> on Iterable<E> {

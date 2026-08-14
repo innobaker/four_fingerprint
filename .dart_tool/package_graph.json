@@ -13,6 +13,7 @@
         "flutter",
         "flutter_secure_storage",
         "hand_detection",
+        "image",
         "plugin_platform_interface"
       ],
       "devDependencies": [
@@ -783,6 +784,48 @@
       "name": "jni_util",
       "version": "1.0.0",
       "dependencies": [
+        "path"
+      ]
+    },
+    {
+      "name": "image",
+      "version": "4.9.1",
+      "dependencies": [
+        "archive",
+        "xml"
+      ]
+    },
+    {
+      "name": "xml",
+      "version": "7.0.1",
+      "dependencies": [
+        "collection",
+        "meta",
+        "petitparser"
+      ]
+    },
+    {
+      "name": "archive",
+      "version": "4.0.9",
+      "dependencies": [
+        "path",
+        "posix"
+      ]
+    },
+    {
+      "name": "petitparser",
+      "version": "7.0.2",
+      "dependencies": [
+        "collection",
+        "meta"
+      ]
+    },
+    {
+      "name": "posix",
+      "version": "6.5.2",
+      "dependencies": [
+        "ffi",
+        "meta",
         "path"
       ]
     }

@@ -201,6 +201,30 @@ fp_crypto.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_crypto.c.s
 .PHONY : fp_crypto.c.s
 
+fp_guidance.o: fp_guidance.c.o
+.PHONY : fp_guidance.o
+
+# target to build an object file
+fp_guidance.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_guidance.c.o
+.PHONY : fp_guidance.c.o
+
+fp_guidance.i: fp_guidance.c.i
+.PHONY : fp_guidance.i
+
+# target to preprocess a source file
+fp_guidance.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_guidance.c.i
+.PHONY : fp_guidance.c.i
+
+fp_guidance.s: fp_guidance.c.s
+.PHONY : fp_guidance.s
+
+# target to generate assembly for a file
+fp_guidance.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_guidance.c.s
+.PHONY : fp_guidance.c.s
+
 fp_illumination.o: fp_illumination.c.o
 .PHONY : fp_illumination.o
 
@@ -320,6 +344,54 @@ fp_minutiae.s: fp_minutiae.c.s
 fp_minutiae.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_minutiae.c.s
 .PHONY : fp_minutiae.c.s
+
+fp_nbis_wrapper.o: fp_nbis_wrapper.c.o
+.PHONY : fp_nbis_wrapper.o
+
+# target to build an object file
+fp_nbis_wrapper.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o
+.PHONY : fp_nbis_wrapper.c.o
+
+fp_nbis_wrapper.i: fp_nbis_wrapper.c.i
+.PHONY : fp_nbis_wrapper.i
+
+# target to preprocess a source file
+fp_nbis_wrapper.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.i
+.PHONY : fp_nbis_wrapper.c.i
+
+fp_nbis_wrapper.s: fp_nbis_wrapper.c.s
+.PHONY : fp_nbis_wrapper.s
+
+# target to generate assembly for a file
+fp_nbis_wrapper.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.s
+.PHONY : fp_nbis_wrapper.c.s
+
+fp_nfiq2_wrapper.o: fp_nfiq2_wrapper.c.o
+.PHONY : fp_nfiq2_wrapper.o
+
+# target to build an object file
+fp_nfiq2_wrapper.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o
+.PHONY : fp_nfiq2_wrapper.c.o
+
+fp_nfiq2_wrapper.i: fp_nfiq2_wrapper.c.i
+.PHONY : fp_nfiq2_wrapper.i
+
+# target to preprocess a source file
+fp_nfiq2_wrapper.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.i
+.PHONY : fp_nfiq2_wrapper.c.i
+
+fp_nfiq2_wrapper.s: fp_nfiq2_wrapper.c.s
+.PHONY : fp_nfiq2_wrapper.s
+
+# target to generate assembly for a file
+fp_nfiq2_wrapper.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/four_fingerprint.dir/build.make CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.s
+.PHONY : fp_nfiq2_wrapper.c.s
 
 fp_pipeline.o: fp_pipeline.c.o
 .PHONY : fp_pipeline.o
@@ -507,6 +579,9 @@ help:
 	@echo "... fp_crypto.o"
 	@echo "... fp_crypto.i"
 	@echo "... fp_crypto.s"
+	@echo "... fp_guidance.o"
+	@echo "... fp_guidance.i"
+	@echo "... fp_guidance.s"
 	@echo "... fp_illumination.o"
 	@echo "... fp_illumination.i"
 	@echo "... fp_illumination.s"
@@ -522,6 +597,12 @@ help:
 	@echo "... fp_minutiae.o"
 	@echo "... fp_minutiae.i"
 	@echo "... fp_minutiae.s"
+	@echo "... fp_nbis_wrapper.o"
+	@echo "... fp_nbis_wrapper.i"
+	@echo "... fp_nbis_wrapper.s"
+	@echo "... fp_nfiq2_wrapper.o"
+	@echo "... fp_nfiq2_wrapper.i"
+	@echo "... fp_nfiq2_wrapper.s"
 	@echo "... fp_pipeline.o"
 	@echo "... fp_pipeline.i"
 	@echo "... fp_pipeline.s"

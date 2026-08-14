@@ -172,6 +172,22 @@ class FpNativeBridge {
 
   bool isMatch(int score) => score >= kContactlessMatchThreshold;
 
+  Future<void> startCountdown(int seconds) async {
+    await _runNative(() => _check(_bindings.fp_start_countdown(seconds)));
+  }
+
+  Future<int> getCountdownRemaining() async {
+    return _runNative(() => _bindings.fp_get_countdown_remaining());
+  }
+
+  Future<bool> isCountdownFinished() async {
+    return _runNative(() => _bindings.fp_is_countdown_finished() == 1);
+  }
+
+  Future<void> setRingMode(int mode) async {
+    await _runNative(() => _check(_bindings.fp_set_ring_mode(mode)));
+  }
+
   Future<Uint8List> exportIsoTemplate({
     required List<FpMinutiaPoint> minutiae,
     required FingerCode fingerPosition,
@@ -247,6 +263,60 @@ class FpNativeBridge {
     });
   }
 
+  Future<FpGuidanceData> assessGuidance({
+    required Uint8List rgbFrame,
+    required int width,
+    required int height,
+    required Float32List landmarks,
+    required List<FingerCode> fingerCodes,
+  }) async {
+    return _runNative(() {
+      final rgb = _copyUint8(rgbFrame);
+      final lm = _copyFloat32(landmarks);
+      final codes = calloc<ffi.Int32>(fingerCodes.length);
+      final guidance = calloc<FpGuidanceResult>();
+      final rects = calloc<FpGuidanceRect>(10);
+      try {
+        for (var i = 0; i < fingerCodes.length; i++) {
+          codes[i] = fingerCodes[i].code;
+        }
+        _check(_bindings.fp_assess_guidance(
+          rgb, width, height, lm, kLandmarkCount, codes,
+          fingerCodes.length, guidance, rects, 10,
+        ));
+
+        final msg = _arrayToString(guidance.ref.message);
+
+        final rectList = <FpGuideRect>[];
+        for (var i = 0; i < guidance.ref.num_rects && i < 10; i++) {
+          final r = (rects + i).ref;
+          rectList.add(FpGuideRect(
+            x: r.x,
+            y: r.y,
+            width: r.width,
+            height: r.height,
+            label: _arrayToString(r.label),
+            status: _arrayToString(r.status),
+          ));
+        }
+
+        return FpGuidanceData(
+          handDistance: HandDistance.fromValue(guidance.ref.hand_distance),
+          fingerAlignment: FingerAlignment.fromValue(guidance.ref.finger_alignment),
+          stability: StabilityStatus.fromValue(guidance.ref.stability),
+          message: msg,
+          guidanceRects: rectList,
+        );
+      } finally {
+        calloc.free(rgb);
+        calloc.free(lm);
+        calloc.free(codes);
+        calloc.free(guidance);
+        calloc.free(rects);
+      }
+    });
+  }
+
   Future<Uint8List> encrypt(Uint8List data, Uint8List key) async {
     return _runNative(() {
       final d = _copyUint8(data);
@@ -303,6 +373,16 @@ class FpNativeBridge {
     final ptr = calloc<ffi.Float>(data.length);
     ptr.asTypedList(data.length).setAll(0, data);
     return ptr;
+  }
+
+  static String _arrayToString(ffi.Array<ffi.Uint8> array) {
+    final bytes = <int>[];
+    for (var i = 0; i < 128; i++) {
+      final b = array[i];
+      if (b == 0) break;
+      bytes.add(b);
+    }
+    return String.fromCharCodes(bytes);
   }
 
   static List<FpMinutiaPoint> _readMinutiae(ffi.Pointer<FpMinutia> ptr, int count) {

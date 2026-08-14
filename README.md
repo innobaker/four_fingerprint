@@ -6,7 +6,7 @@ Contactless slap fingerprint capture for Flutter — 4-4-2 sequencing, minutiae 
 
 ```yaml
 dependencies:
-  four_fingerprint: ^1.0.0
+  four_fingerprint: ^2.0.0
 ```
 
 Run `flutter pub get`.
@@ -15,19 +15,11 @@ Run `flutter pub get`.
 
 ```dart
 import 'package:four_fingerprint/four_fingerprint.dart';
-import 'package:camera/camera.dart';
 
 await FourFingerprint.instance.initialize();
 
 final controller = FpCaptureController();
 await controller.initialize();
-
-// Set up camera
-final back = (await availableCameras()).firstWhere(
-  (c) => c.lensDirection == CameraLensDirection.back,
-);
-final cam = CameraController(back, ResolutionPreset.medium);
-await cam.initialize();
 
 // Start 4-4-2 capture
 controller.startCapture();
@@ -68,6 +60,3 @@ await FpSecureStorage().storeEnrollment(enrollment!);
 | iOS      | Yes |
 | Linux    | Yes (requires system OpenCV) |
 
-## Compliance
-
-For enterprise KYC or law-enforcement deployment, benchmark against [NIST SP 500-399](https://www.nist.gov/publications/sp-500-399-contactless-fingerprint-capture-device-compliance).

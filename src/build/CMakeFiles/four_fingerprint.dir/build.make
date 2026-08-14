@@ -279,6 +279,48 @@ CMakeFiles/four_fingerprint.dir/fp_pipeline.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/four_fingerprint.dir/fp_pipeline.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_pipeline.c -o CMakeFiles/four_fingerprint.dir/fp_pipeline.c.s
 
+CMakeFiles/four_fingerprint.dir/fp_guidance.c.o: CMakeFiles/four_fingerprint.dir/flags.make
+CMakeFiles/four_fingerprint.dir/fp_guidance.c.o: /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_guidance.c
+CMakeFiles/four_fingerprint.dir/fp_guidance.c.o: CMakeFiles/four_fingerprint.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/four_fingerprint.dir/fp_guidance.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/four_fingerprint.dir/fp_guidance.c.o -MF CMakeFiles/four_fingerprint.dir/fp_guidance.c.o.d -o CMakeFiles/four_fingerprint.dir/fp_guidance.c.o -c /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_guidance.c
+
+CMakeFiles/four_fingerprint.dir/fp_guidance.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/four_fingerprint.dir/fp_guidance.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_guidance.c > CMakeFiles/four_fingerprint.dir/fp_guidance.c.i
+
+CMakeFiles/four_fingerprint.dir/fp_guidance.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/four_fingerprint.dir/fp_guidance.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_guidance.c -o CMakeFiles/four_fingerprint.dir/fp_guidance.c.s
+
+CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o: CMakeFiles/four_fingerprint.dir/flags.make
+CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o: /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nbis_wrapper.c
+CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o: CMakeFiles/four_fingerprint.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o -MF CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o.d -o CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o -c /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nbis_wrapper.c
+
+CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nbis_wrapper.c > CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.i
+
+CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nbis_wrapper.c -o CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.s
+
+CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o: CMakeFiles/four_fingerprint.dir/flags.make
+CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o: /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nfiq2_wrapper.c
+CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o: CMakeFiles/four_fingerprint.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o -MF CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o.d -o CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o -c /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nfiq2_wrapper.c
+
+CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nfiq2_wrapper.c > CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.i
+
+CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/fp_nfiq2_wrapper.c -o CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.s
+
 # Object files for target four_fingerprint
 four_fingerprint_OBJECTS = \
 "CMakeFiles/four_fingerprint.dir/four_fingerprint.c.o" \
@@ -295,7 +337,10 @@ four_fingerprint_OBJECTS = \
 "CMakeFiles/four_fingerprint.dir/fp_wsq.c.o" \
 "CMakeFiles/four_fingerprint.dir/fp_crypto.c.o" \
 "CMakeFiles/four_fingerprint.dir/fp_state_machine.c.o" \
-"CMakeFiles/four_fingerprint.dir/fp_pipeline.c.o"
+"CMakeFiles/four_fingerprint.dir/fp_pipeline.c.o" \
+"CMakeFiles/four_fingerprint.dir/fp_guidance.c.o" \
+"CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o" \
+"CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o"
 
 # External object files for target four_fingerprint
 four_fingerprint_EXTERNAL_OBJECTS =
@@ -315,10 +360,13 @@ libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_wsq.c.o
 libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_crypto.c.o
 libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_state_machine.c.o
 libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_pipeline.c.o
+libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_guidance.c.o
+libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_nbis_wrapper.c.o
+libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/fp_nfiq2_wrapper.c.o
 libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/build.make
 libfour_fingerprint.so: /usr/lib/x86_64-linux-gnu/libz.so
 libfour_fingerprint.so: CMakeFiles/four_fingerprint.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Linking C shared library libfour_fingerprint.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking C shared library libfour_fingerprint.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/four_fingerprint.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -4,6 +4,7 @@
 #include "four_fingerprint.h"
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,24 +13,48 @@ extern "C" {
 #endif
 
 #define FP_TARGET_PPI 500
-#define FP_VERSION_STRING "1.0.0"
+#define FP_VERSION_STRING "2.0.0"
+
+/* NFIQ2 unified quality score range */
+#define FP_NFIQ2_MIN_SCORE 0
+#define FP_NFIQ2_MAX_SCORE 100
 
 /* MediaPipe hand landmark count (21 points x 3 coords) */
 #define FP_LANDMARK_COUNT 21
 #define FP_LANDMARK_DIM 3
 
 /* Anthropometric finger width priors (mm) at proximal interphalangeal joint */
-#define FP_INDEX_FINGER_WIDTH_MM 14.5
-#define FP_MIDDLE_FINGER_WIDTH_MM 15.0
-#define FP_RING_FINGER_WIDTH_MM 13.5
-#define FP_LITTLE_FINGER_WIDTH_MM 12.0
-#define FP_THUMB_WIDTH_MM 16.5
+#define FP_INDEX_FINGER_WIDTH_MM 14.5f
+#define FP_MIDDLE_FINGER_WIDTH_MM 15.0f
+#define FP_RING_FINGER_WIDTH_MM 13.5f
+#define FP_LITTLE_FINGER_WIDTH_MM 12.0f
+#define FP_THUMB_WIDTH_MM 16.5f
 
 /* BOZORTH3 recalibrated threshold for contactless captures */
 #define FP_MATCH_THRESHOLD 25
 
 /* Burst capture */
 #define FP_BURST_FRAME_COUNT 8
+
+/* Countdown defaults */
+#define FP_DEFAULT_COUNTDOWN_SECONDS 3
+
+/* Ring modes */
+#define FP_RING_MODE_DYNAMIC 0
+#define FP_RING_MODE_STATIC  1
+
+/* Feature extraction backend */
+#ifdef FP_USE_REAL_NBIS
+#define FP_MINUTIAE_BACKEND "NBIS_MINDTCT"
+#else
+#define FP_MINUTIAE_BACKEND "BUILTIN"
+#endif
+
+#ifdef FP_USE_REAL_NFIQ2
+#define FP_QUALITY_BACKEND "NFIQ2"
+#else
+#define FP_QUALITY_BACKEND "HEURISTIC"
+#endif
 
 typedef struct {
     int32_t x;
@@ -80,6 +105,29 @@ int32_t fp_crop_gray(const uint8_t *src, int32_t sw, int32_t sh,
 float fp_finger_width_mm(int32_t finger_code);
 int32_t fp_landmark_finger_base(int32_t finger_code);
 int32_t fp_landmark_finger_tip(int32_t finger_code);
+
+/* NBIS / NFIQ2 wrapper declarations */
+int32_t fp_nbis_init(void);
+void fp_nbis_cleanup(void);
+int32_t fp_nbis_extract_minutiae(
+    const uint8_t *grayscale_img, int32_t width, int32_t height,
+    int32_t ppi, FpMinutia *out_minutiae, int32_t max_minutiae,
+    int32_t *out_num_minutiae);
+int32_t fp_nbis_match_templates(
+    const FpMinutia *probe, int32_t probe_count,
+    const FpMinutia *gallery, int32_t gallery_count,
+    int32_t *out_match_score);
+
+int32_t fp_nfiq2_init(const char *model_dir);
+void fp_nfiq2_cleanup(void);
+int32_t fp_nfiq2_assess_quality(
+    const uint8_t *grayscale_img, int32_t width, int32_t height,
+    int32_t ppi, int32_t finger_code, int32_t *out_quality_score);
+
+/* Countdown state */
+extern int32_t g_countdown_remaining;
+extern int32_t g_countdown_active;
+extern int32_t g_ring_mode;
 
 #ifdef __cplusplus
 }

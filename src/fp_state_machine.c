@@ -83,3 +83,22 @@ int32_t fp_state_machine_get_step(const FpStateMachine *state) {
     if (!state || !state->initialized) return FP_STATE_IDLE;
     return state->current_step;
 }
+
+int32_t fp_start_countdown(int32_t seconds) {
+    g_countdown_active = 1;
+    g_countdown_remaining = seconds;
+    return FP_OK;
+}
+
+int32_t fp_get_countdown_remaining(void) {
+    return g_countdown_remaining;
+}
+
+int32_t fp_is_countdown_finished(void) {
+    return (g_countdown_active && g_countdown_remaining <= 0) ? 1 : 0;
+}
+
+int32_t fp_set_ring_mode(int32_t mode) {
+    g_ring_mode = mode;
+    return FP_OK;
+}

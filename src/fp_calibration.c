@@ -1,9 +1,5 @@
 #include "fp_internal.h"
 
-/*
- * Scale calibration using anthropometric finger-width priors.
- * Measures perpendicular width at the PIP joint landmark pair.
- */
 int32_t fp_calibrate_scale(
     const uint8_t *rgb_frame, int32_t width, int32_t height,
     const float *hand_landmarks, int32_t landmark_count,
@@ -34,11 +30,9 @@ int32_t fp_calibrate_scale(
         float finger_len_px = fp_dist(bx, by, tx, ty);
         if (finger_len_px < 10.0f) continue;
 
-        /* Estimate width as ~22% of finger length (anthropometric ratio) */
         float width_px = finger_len_px * 0.22f;
         float width_mm = fp_finger_width_mm(code);
 
-        /* PPI = pixels per inch; scale_factor converts current PPI to 500 PPI */
         float current_ppi = (width_px / width_mm) * 25.4f;
         if (current_ppi > 50.0f && current_ppi < 2000.0f) {
             total_scale += (float)FP_TARGET_PPI / current_ppi;
@@ -52,5 +46,7 @@ int32_t fp_calibrate_scale(
     }
 
     *out_scale_factor = total_scale / (float)valid;
+    if (*out_scale_factor < 0.3f) *out_scale_factor = 0.3f;
+    if (*out_scale_factor > 3.0f) *out_scale_factor = 3.0f;
     return FP_OK;
 }

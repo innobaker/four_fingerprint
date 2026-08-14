@@ -1,9 +1,6 @@
-# The Flutter tooling requires that developers have CMake 3.10 or later
-# installed. You should not increase this version, as doing so will cause
-# the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(four_fingerprint_library VERSION 1.0.0 LANGUAGES C)
+project(four_fingerprint_library VERSION 2.0.0 LANGUAGES C CXX)
 
 set(FP_SOURCES
   four_fingerprint.c
@@ -21,6 +18,9 @@ set(FP_SOURCES
   fp_crypto.c
   fp_state_machine.c
   fp_pipeline.c
+  fp_guidance.c
+  fp_nbis_wrapper.c
+  fp_nfiq2_wrapper.c
   )
 
 add_library(four_fingerprint SHARED ${FP_SOURCES})
@@ -29,20 +29,20 @@ set_target_properties(four_fingerprint PROPERTIES
   PUBLIC_HEADER four_fingerprint.h
   OUTPUT_NAME "four_fingerprint"
   C_STANDARD 99
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED ON
   )
 
 target_compile_definitions(four_fingerprint PUBLIC DART_SHARED_LIB)
 target_include_directories(four_fingerprint PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(four_fingerprint PRIVATE m)
 
-# Optional zlib for WSQ compression
 find_package(ZLIB QUIET)
 if(ZLIB_FOUND)
   target_compile_definitions(four_fingerprint PRIVATE FP_HAS_ZLIB)
   target_link_libraries(four_fingerprint PRIVATE ZLIB::ZLIB)
 endif()
 
-# Android OpenCV — download full SDK from official OpenCV releases if not present
 if(ANDROID)
   set(OPENCV_ANDROID_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/opencv/android")
   set(OPENCV_ANDROID_ZIP "${OPENCV_ANDROID_DIR}/opencv-android-4.10.0.zip")
@@ -72,7 +72,6 @@ if(ANDROID)
   target_link_options(four_fingerprint PRIVATE "-Wl,-z,max-page-size=16384")
 endif()
 
-# iOS OpenCV framework — download full framework from official OpenCV releases if not present
 if(IOS)
   set(OPENCV_IOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/opencv/ios")
   set(OPENCV_IOS_FRAMEWORK "${OPENCV_IOS_DIR}/opencv2.framework")
@@ -98,7 +97,6 @@ if(IOS)
     "-framework opencv2")
 endif()
 
-# Desktop Linux/macOS: system OpenCV optional
 if(NOT ANDROID AND NOT IOS)
   find_package(OpenCV QUIET)
   if(OpenCV_FOUND)
@@ -110,4 +108,107 @@ endif()
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   target_link_libraries(four_fingerprint PRIVATE dl)
+endif()
+
+option(FP_USE_REAL_NBIS "Link against real NBIS MINDTCT/BOZORTH3" OFF)
+option(FP_USE_REAL_NFIQ2 "Link against real NFIQ2 library" OFF)
+
+if(FP_USE_REAL_NBIS)
+  target_compile_definitions(four_fingerprint PRIVATE FP_USE_REAL_NBIS)
+
+  set(NBIS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nbis")
+  set(NBIS_MINDTCT_SRC
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/block.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/matchpat.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/free.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/imgutil.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/mytime.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/init.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/contour.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/chaincod.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/loop.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/getmin.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/maps.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/shape.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/sort.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/remove.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/results.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/line.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/quality.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/log.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/isempty.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/update.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/binar.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/util.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/to_type9.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/minutia.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/link.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/dft.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/morph.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/detect.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/xytreps.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/globals.c"
+    "${NBIS_ROOT}/mindtct/src/lib/mindtct/ridges.c"
+    )
+
+  set(NBIS_BOZORTH3_SRC
+    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bozorth3.c"
+    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_gbls.c"
+    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_sort.c"
+    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_io.c"
+    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_drvrs.c"
+    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_alloc.c"
+    )
+
+  set(NBIS_COMMON_SRC
+    "${NBIS_ROOT}/commonnbis/src/lib/util/memalloc.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/util/fatalerr.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/util/syserr.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/util/computil.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftf.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftb.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/fft/cffti.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/fft/passf.c"
+    "${NBIS_ROOT}/commonnbis/src/lib/fft/passb.c"
+    )
+
+  set(NBIS_IMGTOOLS_SRC
+    "${NBIS_ROOT}/imgtools/src/lib/image/imgutil.c"
+    "${NBIS_ROOT}/imgtools/src/lib/image/rgb_ycc.c"
+    )
+
+  target_sources(four_fingerprint PRIVATE
+    ${NBIS_MINDTCT_SRC}
+    ${NBIS_BOZORTH3_SRC}
+    ${NBIS_COMMON_SRC}
+    ${NBIS_IMGTOOLS_SRC}
+    )
+
+  target_include_directories(four_fingerprint PRIVATE
+    "${NBIS_ROOT}/mindtct/include"
+    "${NBIS_ROOT}/bozorth3/include"
+    "${NBIS_ROOT}/commonnbis/include"
+    "${NBIS_ROOT}/imgtools/include"
+    )
+endif()
+
+if(FP_USE_REAL_NFIQ2)
+  target_compile_definitions(four_fingerprint PRIVATE FP_USE_REAL_NFIQ2)
+
+  find_path(NFIQ2_INCLUDE_DIR nfiq2/nfiq2.hpp
+    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nfiq2/NFIQ2/NFIQ2Algorithm/include"
+    NO_DEFAULT_PATH
+    )
+
+  find_library(NFIQ2_LIBRARY NAMES nfiq2-static-lib nfiq2
+    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nfiq2/build"
+    NO_DEFAULT_PATH
+    )
+
+  if(NFIQ2_INCLUDE_DIR AND NFIQ2_LIBRARY)
+    target_include_directories(four_fingerprint PRIVATE ${NFIQ2_INCLUDE_DIR})
+    target_link_libraries(four_fingerprint PRIVATE ${NFIQ2_LIBRARY})
+  else()
+    message(WARNING "NFIQ2 library not found. Build NFIQ2 first or disable FP_USE_REAL_NFIQ2.")
+  endif()
 endif()

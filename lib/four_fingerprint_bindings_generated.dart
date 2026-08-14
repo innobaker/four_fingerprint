@@ -868,7 +868,67 @@ class FourFingerprintBindings {
   late final _fp_free_processed_finger = _fp_free_processed_fingerPtr
       .asFunction<void Function(ffi.Pointer<FpProcessedFinger>)>();
 
-  /// 17. Version info
+  /// 17. Guidance / UI hints
+  int fp_assess_guidance(
+    ffi.Pointer<ffi.Uint8> rgb_frame,
+    int width,
+    int height,
+    ffi.Pointer<ffi.Float> hand_landmarks,
+    int landmark_count,
+    ffi.Pointer<ffi.Int32> finger_codes,
+    int num_fingers,
+    ffi.Pointer<FpGuidanceResult> out_guidance,
+    ffi.Pointer<FpGuidanceRect> out_rects,
+    int max_rects,
+  ) {
+    return _fp_assess_guidance(
+      rgb_frame,
+      width,
+      height,
+      hand_landmarks,
+      landmark_count,
+      finger_codes,
+      num_fingers,
+      out_guidance,
+      out_rects,
+      max_rects,
+    );
+  }
+
+  late final _fp_assess_guidancePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Int32 Function(
+            ffi.Pointer<ffi.Uint8>,
+            ffi.Int32,
+            ffi.Int32,
+            ffi.Pointer<ffi.Float>,
+            ffi.Int32,
+            ffi.Pointer<ffi.Int32>,
+            ffi.Int32,
+            ffi.Pointer<FpGuidanceResult>,
+            ffi.Pointer<FpGuidanceRect>,
+            ffi.Int32,
+          )
+        >
+      >('fp_assess_guidance');
+  late final _fp_assess_guidance = _fp_assess_guidancePtr
+      .asFunction<
+        int Function(
+          ffi.Pointer<ffi.Uint8>,
+          int,
+          int,
+          ffi.Pointer<ffi.Float>,
+          int,
+          ffi.Pointer<ffi.Int32>,
+          int,
+          ffi.Pointer<FpGuidanceResult>,
+          ffi.Pointer<FpGuidanceRect>,
+          int,
+        )
+      >();
+
+  /// 18. Version info
   ffi.Pointer<ffi.Char> fp_get_version() {
     return _fp_get_version();
   }
@@ -879,6 +939,50 @@ class FourFingerprintBindings {
       );
   late final _fp_get_version = _fp_get_versionPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  int fp_start_countdown(int seconds) {
+    return _fp_start_countdown(seconds);
+  }
+
+  late final _fp_start_countdownPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Int32)>>(
+        'fp_start_countdown',
+      );
+  late final _fp_start_countdown = _fp_start_countdownPtr
+      .asFunction<int Function(int)>();
+
+  int fp_get_countdown_remaining() {
+    return _fp_get_countdown_remaining();
+  }
+
+  late final _fp_get_countdown_remainingPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function()>>(
+        'fp_get_countdown_remaining',
+      );
+  late final _fp_get_countdown_remaining = _fp_get_countdown_remainingPtr
+      .asFunction<int Function()>();
+
+  int fp_is_countdown_finished() {
+    return _fp_is_countdown_finished();
+  }
+
+  late final _fp_is_countdown_finishedPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function()>>(
+        'fp_is_countdown_finished',
+      );
+  late final _fp_is_countdown_finished = _fp_is_countdown_finishedPtr
+      .asFunction<int Function()>();
+
+  int fp_set_ring_mode(int mode) {
+    return _fp_set_ring_mode(mode);
+  }
+
+  late final _fp_set_ring_modePtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Int32)>>(
+        'fp_set_ring_mode',
+      );
+  late final _fp_set_ring_mode = _fp_set_ring_modePtr
+      .asFunction<int Function(int)>();
 }
 
 /// Data structures
@@ -1019,6 +1123,63 @@ final class FpProcessedFinger extends ffi.Struct {
   @ffi.Int32()
   external int encrypted_data_size;
 }
+
+final class FpGuidanceResult extends ffi.Struct {
+  @ffi.Int32()
+  external int hand_distance;
+
+  @ffi.Int32()
+  external int finger_alignment;
+
+  @ffi.Int32()
+  external int stability;
+
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Uint8> message;
+
+  @ffi.Int32()
+  external int num_rects;
+}
+
+final class FpGuidanceRect extends ffi.Struct {
+  @ffi.Float()
+  external double x;
+
+  @ffi.Float()
+  external double y;
+
+  @ffi.Float()
+  external double width;
+
+  @ffi.Float()
+  external double height;
+
+  @ffi.Array.multi([32])
+  external ffi.Array<ffi.Uint8> label;
+
+  @ffi.Array.multi([32])
+  external ffi.Array<ffi.Uint8> status;
+}
+
+const int FP_HAND_TOO_NEAR = 0;
+
+const int FP_HAND_OK = 1;
+
+const int FP_HAND_TOO_FAR = 2;
+
+const int FP_ALIGN_NOT_DETECTED = 0;
+
+const int FP_ALIGN_PARTIAL = 1;
+
+const int FP_ALIGN_GOOD = 2;
+
+const int FP_ALIGN_OVERLAPPING = 3;
+
+const int FP_STABILITY_UNSTABLE = 0;
+
+const int FP_STABILITY_SETTLING = 1;
+
+const int FP_STABILITY_STABLE = 2;
 
 const int FP_FINGER_UNKNOWN = 0;
 
