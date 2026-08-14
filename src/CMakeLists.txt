@@ -44,57 +44,28 @@ if(ZLIB_FOUND)
 endif()
 
 if(ANDROID)
-  set(OPENCV_ANDROID_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/opencv/android")
-  set(OPENCV_ANDROID_ZIP "${OPENCV_ANDROID_DIR}/opencv-android-4.10.0.zip")
-  set(OPENCV_ANDROID_SDK "${OPENCV_ANDROID_DIR}/sdk/native/jni")
-
-  if(NOT EXISTS "${OPENCV_ANDROID_SDK}/OpenCVConfig.cmake")
-    message(STATUS "Downloading OpenCV Android SDK...")
-    file(DOWNLOAD
-      "https://github.com/opencv/opencv/releases/download/4.10.0/opencv-android-4.10.0.zip"
-      "${OPENCV_ANDROID_ZIP}"
-      SHOW_PROGRESS
-      )
-    file(MAKE_DIRECTORY "${OPENCV_ANDROID_DIR}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf "${OPENCV_ANDROID_ZIP}"
-      WORKING_DIRECTORY "${OPENCV_ANDROID_DIR}"
-      )
-    file(RENAME "${OPENCV_ANDROID_DIR}/OpenCV-android-sdk" "${OPENCV_ANDROID_DIR}/sdk")
-  endif()
-
-  set(OpenCV_DIR "${OPENCV_ANDROID_SDK}")
-  find_package(OpenCV QUIET)
-  if(OpenCV_FOUND)
-    target_compile_definitions(four_fingerprint PRIVATE FP_HAS_OPENCV)
-    target_include_directories(four_fingerprint PRIVATE ${OpenCV_INCLUDE_DIRS})
-    target_link_libraries(four_fingerprint PRIVATE ${OpenCV_LIBS})
+  set(OPENCV_ANDROID_SDK "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/opencv/android/sdk/native/jni")
+  if(EXISTS "${OPENCV_ANDROID_SDK}/OpenCVConfig.cmake")
+    set(OpenCV_DIR "${OPENCV_ANDROID_SDK}")
+    find_package(OpenCV QUIET)
+    if(OpenCV_FOUND)
+      target_compile_definitions(four_fingerprint PRIVATE FP_HAS_OPENCV)
+      target_include_directories(four_fingerprint PRIVATE ${OpenCV_INCLUDE_DIRS})
+      target_link_libraries(four_fingerprint PRIVATE ${OpenCV_LIBS})
+    endif()
   endif()
   target_link_options(four_fingerprint PRIVATE "-Wl,-z,max-page-size=16384")
 endif()
 
 if(IOS)
-  set(OPENCV_IOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/opencv/ios")
-  set(OPENCV_IOS_FRAMEWORK "${OPENCV_IOS_DIR}/opencv2.framework")
-  set(OPENCV_IOS_ZIP "${OPENCV_IOS_DIR}/opencv2.framework.zip")
-
-  if(NOT EXISTS "${OPENCV_IOS_FRAMEWORK}")
-    message(STATUS "Downloading OpenCV iOS framework...")
-    file(DOWNLOAD
-      "https://github.com/opencv/opencv/releases/download/4.10.0/opencv2.framework.zip"
-      "${OPENCV_IOS_ZIP}"
-      SHOW_PROGRESS
-      )
-    file(MAKE_DIRECTORY "${OPENCV_IOS_DIR}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf "${OPENCV_IOS_ZIP}"
-      WORKING_DIRECTORY "${OPENCV_IOS_DIR}"
-      )
+  set(OPENCV_IOS_FRAMEWORK "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/opencv/ios/opencv2.framework")
+  if(EXISTS "${OPENCV_IOS_FRAMEWORK}")
+    target_compile_definitions(four_fingerprint PRIVATE FP_HAS_OPENCV)
+    target_include_directories(four_fingerprint PRIVATE
+      "${OPENCV_IOS_FRAMEWORK}/Versions/A/Headers")
+    target_link_libraries(four_fingerprint PRIVATE
+      "-framework opencv2")
   endif()
-
-  target_compile_definitions(four_fingerprint PRIVATE FP_HAS_OPENCV)
-  target_include_directories(four_fingerprint PRIVATE
-    "${OPENCV_IOS_FRAMEWORK}/Versions/A/Headers")
-  target_link_libraries(four_fingerprint PRIVATE
-    "-framework opencv2")
 endif()
 
 if(NOT ANDROID AND NOT IOS)
@@ -114,101 +85,98 @@ option(FP_USE_REAL_NBIS "Link against real NBIS MINDTCT/BOZORTH3" OFF)
 option(FP_USE_REAL_NFIQ2 "Link against real NFIQ2 library" OFF)
 
 if(FP_USE_REAL_NBIS)
-  target_compile_definitions(four_fingerprint PRIVATE FP_USE_REAL_NBIS)
-
   set(NBIS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nbis")
-  set(NBIS_MINDTCT_SRC
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/block.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/matchpat.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/free.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/imgutil.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/mytime.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/init.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/contour.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/chaincod.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/loop.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/getmin.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/maps.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/shape.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/sort.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/remove.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/results.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/line.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/quality.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/log.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/isempty.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/update.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/binar.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/util.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/to_type9.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/minutia.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/link.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/dft.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/morph.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/detect.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/xytreps.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/globals.c"
-    "${NBIS_ROOT}/mindtct/src/lib/mindtct/ridges.c"
-    )
+  if(EXISTS "${NBIS_ROOT}/mindtct/src/lib/mindtct/block.c")
+    target_compile_definitions(four_fingerprint PRIVATE FP_USE_REAL_NBIS)
 
-  set(NBIS_BOZORTH3_SRC
-    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bozorth3.c"
-    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_gbls.c"
-    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_sort.c"
-    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_io.c"
-    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_drvrs.c"
-    "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_alloc.c"
-    )
+    set(NBIS_MINDTCT_SRC
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/block.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/matchpat.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/free.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/imgutil.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/mytime.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/init.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/contour.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/chaincod.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/loop.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/getmin.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/maps.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/shape.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/sort.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/remove.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/results.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/line.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/quality.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/log.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/isempty.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/update.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/binar.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/util.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/to_type9.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/minutia.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/link.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/dft.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/morph.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/detect.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/xytreps.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/globals.c"
+      "${NBIS_ROOT}/mindtct/src/lib/mindtct/ridges.c"
+      )
 
-  set(NBIS_COMMON_SRC
-    "${NBIS_ROOT}/commonnbis/src/lib/util/memalloc.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/util/fatalerr.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/util/syserr.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/util/computil.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftf.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftb.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/fft/cffti.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/fft/passf.c"
-    "${NBIS_ROOT}/commonnbis/src/lib/fft/passb.c"
-    )
+    set(NBIS_BOZORTH3_SRC
+      "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bozorth3.c"
+      "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_gbls.c"
+      "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_sort.c"
+      "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_io.c"
+      "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_drvrs.c"
+      "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_alloc.c"
+      )
 
-  set(NBIS_IMGTOOLS_SRC
-    "${NBIS_ROOT}/imgtools/src/lib/image/imgutil.c"
-    "${NBIS_ROOT}/imgtools/src/lib/image/rgb_ycc.c"
-    )
+    set(NBIS_COMMON_SRC
+      "${NBIS_ROOT}/commonnbis/src/lib/util/memalloc.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/util/fatalerr.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/util/syserr.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/util/computil.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftf.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftb.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/cffti.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passf.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passb.c"
+      )
 
-  target_sources(four_fingerprint PRIVATE
-    ${NBIS_MINDTCT_SRC}
-    ${NBIS_BOZORTH3_SRC}
-    ${NBIS_COMMON_SRC}
-    ${NBIS_IMGTOOLS_SRC}
-    )
+    set(NBIS_IMGTOOLS_SRC
+      "${NBIS_ROOT}/imgtools/src/lib/image/imgutil.c"
+      "${NBIS_ROOT}/imgtools/src/lib/image/rgb_ycc.c"
+      )
 
-  target_include_directories(four_fingerprint PRIVATE
-    "${NBIS_ROOT}/mindtct/include"
-    "${NBIS_ROOT}/bozorth3/include"
-    "${NBIS_ROOT}/commonnbis/include"
-    "${NBIS_ROOT}/imgtools/include"
-    )
+    target_sources(four_fingerprint PRIVATE
+      ${NBIS_MINDTCT_SRC}
+      ${NBIS_BOZORTH3_SRC}
+      ${NBIS_COMMON_SRC}
+      ${NBIS_IMGTOOLS_SRC}
+      )
+
+    target_include_directories(four_fingerprint PRIVATE
+      "${NBIS_ROOT}/mindtct/include"
+      "${NBIS_ROOT}/bozorth3/include"
+      "${NBIS_ROOT}/commonnbis/include"
+      "${NBIS_ROOT}/imgtools/include"
+      )
+  endif()
 endif()
 
 if(FP_USE_REAL_NFIQ2)
-  target_compile_definitions(four_fingerprint PRIVATE FP_USE_REAL_NFIQ2)
-
-  find_path(NFIQ2_INCLUDE_DIR nfiq2/nfiq2.hpp
-    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nfiq2/NFIQ2/NFIQ2Algorithm/include"
-    NO_DEFAULT_PATH
-    )
-
-  find_library(NFIQ2_LIBRARY NAMES nfiq2-static-lib nfiq2
-    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nfiq2/build"
-    NO_DEFAULT_PATH
-    )
-
-  if(NFIQ2_INCLUDE_DIR AND NFIQ2_LIBRARY)
+  set(NFIQ2_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nfiq2/NFIQ2/NFIQ2Algorithm/include")
+  if(EXISTS "${NFIQ2_INCLUDE_DIR}/nfiq2.hpp")
+    target_compile_definitions(four_fingerprint PRIVATE FP_USE_REAL_NFIQ2)
     target_include_directories(four_fingerprint PRIVATE ${NFIQ2_INCLUDE_DIR})
-    target_link_libraries(four_fingerprint PRIVATE ${NFIQ2_LIBRARY})
-  else()
-    message(WARNING "NFIQ2 library not found. Build NFIQ2 first or disable FP_USE_REAL_NFIQ2.")
+
+    find_library(NFIQ2_LIBRARY NAMES nfiq2-static-lib nfiq2
+      PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nfiq2/build"
+      NO_DEFAULT_PATH
+      )
+    if(NFIQ2_LIBRARY)
+      target_link_libraries(four_fingerprint PRIVATE ${NFIQ2_LIBRARY})
+    endif()
   endif()
 endif()

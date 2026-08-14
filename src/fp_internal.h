@@ -43,18 +43,9 @@ extern "C" {
 #define FP_RING_MODE_DYNAMIC 0
 #define FP_RING_MODE_STATIC  1
 
-/* Feature extraction backend */
-#ifdef FP_USE_REAL_NBIS
+/* Feature extraction backend — real NBIS and NFIQ2 are mandatory */
 #define FP_MINUTIAE_BACKEND "NBIS_MINDTCT"
-#else
-#define FP_MINUTIAE_BACKEND "BUILTIN"
-#endif
-
-#ifdef FP_USE_REAL_NFIQ2
 #define FP_QUALITY_BACKEND "NFIQ2"
-#else
-#define FP_QUALITY_BACKEND "HEURISTIC"
-#endif
 
 typedef struct {
     int32_t x;

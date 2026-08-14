@@ -1,0 +1,32 @@
+# Native/build artifacts
+src/build/
+third_party/
+*.so
+!android/src/main/jniLibs/**/*.so
+*.a
+*.o
+*.jar
+*.aar
+*.zip
+*.tar.gz
+*.tgz
+
+# Flutter/Dart build artifacts
+.dart_tool/
+build/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Git
+.git/
+.gitignore
+
+# Misc
+.DS_Store
+pubspec.lock

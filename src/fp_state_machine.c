@@ -1,5 +1,9 @@
 #include "fp_internal.h"
 
+int32_t g_countdown_remaining = 0;
+int32_t g_countdown_active = 0;
+int32_t g_ring_mode = 0;
+
 int32_t fp_state_machine_init(FpStateMachine *state) {
     if (!state) return FP_ERR_INVALID_INPUT;
     memset(state, 0, sizeof(FpStateMachine));

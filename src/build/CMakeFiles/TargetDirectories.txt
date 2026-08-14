@@ -1,3 +1,0 @@
-/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles/four_fingerprint.dir
-/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles/edit_cache.dir
-/home/egovridc26/Desktop/projects/bioscannerid/four_fingerprint/src/build/CMakeFiles/rebuild_cache.dir

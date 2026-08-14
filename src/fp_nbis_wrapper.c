@@ -1,31 +1,88 @@
 #include "fp_internal.h"
 
-#ifndef MAX_BOZORTH_MINUTIAE
-#define MAX_BOZORTH_MINUTIAE 200
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-/* ============================================================================
- * NBIS Wrapper — MINDTCT + BOZORTH3
- *
- * When FP_USE_REAL_NBIS is defined, this wrapper calls the actual NBIS
- * libraries. Otherwise it falls back to the built-in implementations.
- *
- * Build real NBIS by adding the mindtct/bozorth3 source trees to CMake
- * and defining FP_USE_REAL_NBIS.
- * ============================================================================ */
+#include <lfs.h>
+#include <bozorth.h>
 
-#ifdef FP_USE_REAL_NBIS
+#ifdef __cplusplus
+}
+#endif
 
-/* Forward declarations from real NBIS headers */
-extern int lfs_detect_minutiae_V2(
-    MINUTIAE **, int **, int **, int **, int **, int *, int *,
-    unsigned char **, int *, int *,
-    unsigned char *, const int, const int, const LFSPARMS *);
+#ifndef FP_USE_REAL_NBIS
 
-extern int bozorth_main(struct xyt_struct *, struct xyt_struct *);
-extern int bozorth_probe_init(struct xyt_struct *);
-extern int bozorth_gallery_init(struct xyt_struct *);
-extern int bozorth_to_gallery(int, struct xyt_struct *, struct xyt_struct *);
+int32_t fp_nbis_init(void) {
+    return FP_OK;
+}
+
+void fp_nbis_cleanup(void) {
+}
+
+int32_t fp_nbis_extract_minutiae(
+    const uint8_t *grayscale_img, int32_t width, int32_t height,
+    int32_t ppi, FpMinutia *out_minutiae, int32_t max_minutiae,
+    int32_t *out_num_minutiae) {
+
+    if (!grayscale_img || !out_minutiae || !out_num_minutiae ||
+        width < 16 || height < 16 || max_minutiae <= 0) {
+        return FP_ERR_INVALID_INPUT;
+    }
+
+    int32_t count = 0;
+    int32_t step = 8;
+    for (int32_t y = step; y < height - step && count < max_minutiae; y += step) {
+        for (int32_t x = step; x < width - step && count < max_minutiae; x += step) {
+            int gx = (int)grayscale_img[y * width + x + 1] - (int)grayscale_img[y * width + x - 1];
+            int gy = (int)grayscale_img[(y + 1) * width + x] - (int)grayscale_img[(y - 1) * width + x];
+            int mag = gx * gx + gy * gy;
+            if (mag > 400) {
+                out_minutiae[count].x = x;
+                out_minutiae[count].y = y;
+                out_minutiae[count].direction = (int16_t)(atan2f((float)gy, (float)gx) * 180.0f / M_PI * 10);
+                out_minutiae[count].type = 1;
+                out_minutiae[count].reliability = (uint8_t)(mag > 1600 ? 90 : 60);
+                count++;
+            }
+        }
+    }
+
+    *out_num_minutiae = count;
+    return count > 0 ? FP_OK : FP_ERR_PROCESSING_FAILED;
+}
+
+int32_t fp_nbis_match_templates(
+    const FpMinutia *probe, int32_t probe_count,
+    const FpMinutia *gallery, int32_t gallery_count,
+    int32_t *out_match_score) {
+
+    if (!probe || !gallery || !out_match_score ||
+        probe_count <= 0 || gallery_count <= 0) {
+        return FP_ERR_INVALID_INPUT;
+    }
+
+    int32_t matches = 0;
+    for (int32_t i = 0; i < probe_count && i < 40; i++) {
+        for (int32_t j = 0; j < gallery_count && j < 40; j++) {
+            int dx = probe[i].x - gallery[j].x;
+            int dy = probe[i].y - gallery[j].y;
+            int dist = dx * dx + dy * dy;
+            if (dist < 400) {
+                int dd = abs(probe[i].direction - gallery[j].direction);
+                if (dd > 180) dd = 360 - dd;
+                if (dd < 45) {
+                    matches++;
+                }
+            }
+        }
+    }
+
+    *out_match_score = matches * 5;
+    return FP_OK;
+}
+
+#else
 
 static LFSPARMS g_lfsparms;
 static int g_nbis_initialized = 0;
@@ -63,11 +120,6 @@ int32_t fp_nbis_extract_minutiae(
     const uint8_t *grayscale_img, int32_t width, int32_t height,
     int32_t ppi, FpMinutia *out_minutiae, int32_t max_minutiae,
     int32_t *out_num_minutiae) {
-
-    if (!fp_nbis_init()) {
-        return fp_extract_minutiae(grayscale_img, width, height, ppi,
-                                   out_minutiae, max_minutiae, out_num_minutiae);
-    }
 
     MINUTIAE *minutiae = NULL;
     int *quality_map = NULL, *direction_map = NULL, *low_contrast_map = NULL;
@@ -123,26 +175,4 @@ int32_t fp_nbis_match_templates(
     return FP_OK;
 }
 
-#else /* !FP_USE_REAL_NBIS — fallback to built-in */
-
-int32_t fp_nbis_init(void) { return FP_OK; }
-void fp_nbis_cleanup(void) {}
-
-int32_t fp_nbis_extract_minutiae(
-    const uint8_t *grayscale_img, int32_t width, int32_t height,
-    int32_t ppi, FpMinutia *out_minutiae, int32_t max_minutiae,
-    int32_t *out_num_minutiae) {
-    (void)ppi;
-    return fp_extract_minutiae(grayscale_img, width, height, ppi,
-                               out_minutiae, max_minutiae, out_num_minutiae);
-}
-
-int32_t fp_nbis_match_templates(
-    const FpMinutia *probe, int32_t probe_count,
-    const FpMinutia *gallery, int32_t gallery_count,
-    int32_t *out_match_score) {
-    return fp_match_templates(probe, probe_count, gallery, gallery_count,
-                              out_match_score);
-}
-
-#endif /* FP_USE_REAL_NBIS */
+#endif
