@@ -178,7 +178,7 @@ class FpCaptureController extends ChangeNotifier {
 
       final auto = _options?.autoCapture ?? true;
       if (auto && guide.readyToCapture && !_countdownActive) {
-        return _captureNow(image, guide);
+        return await _captureNow(image, guide);
       }
       return false;
     } finally {

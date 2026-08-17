@@ -37,7 +37,7 @@ class MediaPipeHands {
     try {
       final jpeg = await compute(_yuv420ToJpeg, _YuvPacket.from(image));
       if (jpeg == null) return null;
-      return detectJpeg(jpeg);
+      return await detectJpeg(jpeg);
     } finally {
       _busy = false;
     }

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.4
+
+- Rebuild `libfour_fingerprint.so` with real NIST NBIS MINDTCT (minutiae extraction) and BOZORTH3 (matching).
+- Remove unused OpenCV SDK (~819 MB) — code never used it.
+- Trim NBIS to essential directories only.
+- Add `android/CMakeLists.txt` for `ffiPlugin: true` compatibility.
+- Pin NDK version and restrict ABI to arm64-v8a.
+- Downgrade AGP from 9.0.1 to 8.1.0 for stability.
+- Fix `compileSdk` 36 → 35.
+
 ## 1.0.2
 
 - Ship prebuilt `libfour_fingerprint.so` for Android arm64-v8a.

@@ -31,3 +31,4 @@ coverage/
 # Misc
 .DS_Store
 pubspec.lock
+.dart_tool/
