@@ -81,8 +81,8 @@ if(UNIX AND NOT APPLE AND NOT ANDROID)
   target_link_libraries(four_fingerprint PRIVATE dl)
 endif()
 
-option(FP_USE_REAL_NBIS "Link against real NBIS MINDTCT/BOZORTH3" OFF)
-option(FP_USE_REAL_NFIQ2 "Link against real NFIQ2 library" OFF)
+option(FP_USE_REAL_NBIS "Link against real NBIS MINDTCT/BOZORTH3" ON)
+option(FP_USE_REAL_NFIQ2 "Link against real NFIQ2 library" ON)
 
 if(FP_USE_REAL_NBIS)
   set(NBIS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/nbis")
@@ -104,15 +104,12 @@ if(FP_USE_REAL_NBIS)
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/shape.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/sort.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/remove.c"
-      "${NBIS_ROOT}/mindtct/src/lib/mindtct/results.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/line.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/quality.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/log.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/isempty.c"
-      "${NBIS_ROOT}/mindtct/src/lib/mindtct/update.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/binar.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/util.c"
-      "${NBIS_ROOT}/mindtct/src/lib/mindtct/to_type9.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/minutia.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/link.c"
       "${NBIS_ROOT}/mindtct/src/lib/mindtct/dft.c"
@@ -130,6 +127,7 @@ if(FP_USE_REAL_NBIS)
       "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_io.c"
       "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_drvrs.c"
       "${NBIS_ROOT}/bozorth3/src/lib/bozorth3/bz_alloc.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/nbis_bozorth3_globals.c"
       )
 
     set(NBIS_COMMON_SRC
@@ -140,20 +138,69 @@ if(FP_USE_REAL_NBIS)
       "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftf.c"
       "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftb.c"
       "${NBIS_ROOT}/commonnbis/src/lib/fft/cffti.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftf1.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/cfftb1.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/cffti1.c"
       "${NBIS_ROOT}/commonnbis/src/lib/fft/passf.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passf2.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passf3.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passf4.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passf5.c"
       "${NBIS_ROOT}/commonnbis/src/lib/fft/passb.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passb2.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passb3.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passb4.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/fft/passb5.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/dataio.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/filesize.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/fileexst.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/findfile.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/filehead.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/filetail.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/fileroot.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/newext.c"
+      "${NBIS_ROOT}/commonnbis/src/lib/ioutil/readutil.c"
       )
 
     set(NBIS_IMGTOOLS_SRC
       "${NBIS_ROOT}/imgtools/src/lib/image/imgutil.c"
       "${NBIS_ROOT}/imgtools/src/lib/image/rgb_ycc.c"
+      "${NBIS_ROOT}/imgtools/src/lib/image/sunrast.c"
+      "${NBIS_ROOT}/imgtools/src/lib/image/imageops.c"
+      "${NBIS_ROOT}/imgtools/src/lib/image/binpad.c"
+      "${NBIS_ROOT}/imgtools/src/lib/image/bincopy.c"
+      )
+
+    set(NBIS_AN2K_SRC
+      "${NBIS_ROOT}/an2k/src/lib/an2k/alloc.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/append.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/copy.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/date.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/delete.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/fmtstd.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/fmttext.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/getimg.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/globals.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/insert.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/is_an2k.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/lookup.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/print.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/read.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/seg.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/select.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/size.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/subst.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/type.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/type1314.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/update.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/util.c"
+      "${NBIS_ROOT}/an2k/src/lib/an2k/value2.c"
       )
 
     target_sources(four_fingerprint PRIVATE
       ${NBIS_MINDTCT_SRC}
       ${NBIS_BOZORTH3_SRC}
       ${NBIS_COMMON_SRC}
-      ${NBIS_IMGTOOLS_SRC}
       )
 
     target_include_directories(four_fingerprint PRIVATE
@@ -161,6 +208,7 @@ if(FP_USE_REAL_NBIS)
       "${NBIS_ROOT}/bozorth3/include"
       "${NBIS_ROOT}/commonnbis/include"
       "${NBIS_ROOT}/imgtools/include"
+      "${NBIS_ROOT}/an2k/include"
       )
   endif()
 endif()

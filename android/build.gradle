@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:9.0.1")
+        classpath("com.android.tools.build:gradle:8.1.0")
     }
 }
 
@@ -25,8 +25,8 @@ apply plugin: "com.android.library"
 
 android {
     namespace = "com.example.four_fingerprint"
-    compileSdk = 36
-    ndkVersion = android.ndkVersion
+    compileSdk = 35
+    ndkVersion = "28.0.13004108"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,6 +35,9 @@ android {
 
     defaultConfig {
         minSdk = 24
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
     }
 
     sourceSets {
