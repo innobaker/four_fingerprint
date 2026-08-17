@@ -1,6 +1,6 @@
 name: four_fingerprint
 description: Contactless slap fingerprint capture plugin — 4-4-2 sequencing, minutiae extraction, and matching via phone camera.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/your-repo/four_fingerprint
 repository: https://github.com/your-repo/four_fingerprint
 issue_tracker: https://github.com/your-repo/four_fingerprint/issues

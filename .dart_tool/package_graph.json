@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "four_fingerprint",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "dependencies": [
         "camera",
         "collection",
@@ -155,6 +155,11 @@
       ]
     },
     {
+      "name": "meta",
+      "version": "1.19.0",
+      "dependencies": []
+    },
+    {
       "name": "leak_tracker_flutter_testing",
       "version": "3.0.10",
       "dependencies": [
@@ -164,6 +169,11 @@
         "matcher",
         "meta"
       ]
+    },
+    {
+      "name": "vector_math",
+      "version": "2.4.2",
+      "dependencies": []
     },
     {
       "name": "stack_trace",
@@ -818,16 +828,6 @@
       "dependencies": [
         "path"
       ]
-    },
-    {
-      "name": "meta",
-      "version": "1.19.0",
-      "dependencies": []
-    },
-    {
-      "name": "vector_math",
-      "version": "2.4.2",
-      "dependencies": []
     }
   ],
   "configVersion": 1

@@ -1,6 +1,7 @@
 # Native/build artifacts
 src/build/
-third_party/
+third_party/nfiq2/
+third_party/opencv/
 *.so
 !android/src/main/jniLibs/**/*.so
 *.a
