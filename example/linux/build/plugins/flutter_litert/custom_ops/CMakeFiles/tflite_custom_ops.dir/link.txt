@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC -O3 -DNDEBUG -shared -Wl,--dependency-file=CMakeFiles/tflite_custom_ops.dir/link.d -Wl,-soname,libtflite_custom_ops.so -o libtflite_custom_ops.so CMakeFiles/tflite_custom_ops.dir/custom_ops/transpose_conv_bias.c.o

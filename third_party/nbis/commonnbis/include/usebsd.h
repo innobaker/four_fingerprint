@@ -62,9 +62,12 @@ of the software.
 ***********************************************************************/
 #ifndef _USEBSD_H
 #define _USEBSD_H
-
 #if defined(__linux__) && !defined(_BSD_SOURCE)
+
+#define _DEFAULT_SOURCE
+#ifndef _BSD_SOURCE
 #define _BSD_SOURCE
+#endif
 #elif defined(__CYGWIN__) && defined(__STRICT_ANSI__)
 #undef __STRICT_ANSI__
 #endif

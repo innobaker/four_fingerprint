@@ -1,0 +1,2 @@
+# Empty dependencies file for flutter_tflite_plugin.
+# This may be replaced when dependencies are built.

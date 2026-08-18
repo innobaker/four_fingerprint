@@ -122,16 +122,18 @@ int32_t fp_nbis_extract_minutiae(
     int32_t *out_num_minutiae) {
 
     MINUTIAE *minutiae = NULL;
-    int *quality_map = NULL, *direction_map = NULL, *low_contrast_map = NULL;
-    int *high_curve_map = NULL;
-    int qm_len = 0, dm_len = 0, lcm_len = 0, hcm_len = 0;
-    unsigned char *idata = NULL;
-    int idata_len = 0;
+    int *direction_map = NULL, *low_contrast_map = NULL;
+    int *low_flow_map = NULL, *high_curve_map = NULL;
+    int map_w = 0, map_h = 0;
+    unsigned char *bdata = NULL;
+    int bw = 0, bh = 0;
 
     int ret = lfs_detect_minutiae_V2(
-        &minutiae, &quality_map, &direction_map, &low_contrast_map,
-        &high_curve_map, &qm_len, &dm_len, &lcm_len, &hcm_len,
-        &idata, &idata_len, width, height, &g_lfsparms
+        &minutiae, &direction_map, &low_contrast_map,
+        &low_flow_map, &high_curve_map, &map_w, &map_h,
+        &bdata, &bw, &bh,
+        (unsigned char *)grayscale_img, width, height,
+        (const LFSPARMS *)&g_lfsparms
     );
 
     if (ret != 0 || minutiae == NULL || minutiae->num <= 0) {
@@ -151,6 +153,11 @@ int32_t fp_nbis_extract_minutiae(
 
     *out_num_minutiae = count;
     free_minutiae(minutiae);
+    free(bdata);
+    free(direction_map);
+    free(low_contrast_map);
+    free(low_flow_map);
+    free(high_curve_map);
     return FP_OK;
 }
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.5
+
+- Fix `lfs_detect_minutiae_V2` parameter types — wrong pointer types caused build failures on Linux.
+- Add `free()` calls for NBIS allocated maps after minutiae extraction.
+- Suppress `_BSD_SOURCE` deprecation warning in NBIS headers.
+
 ## 1.0.4
 
 - Rebuild `libfour_fingerprint.so` with real NIST NBIS MINDTCT (minutiae extraction) and BOZORTH3 (matching).

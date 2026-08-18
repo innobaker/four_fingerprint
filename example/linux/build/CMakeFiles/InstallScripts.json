@@ -1,0 +1,17 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/flutter/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/runner/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/flutter_secure_storage_linux/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/hand_detection/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/flutter_litert/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/flutter_litert/custom_ops/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/four_fingerprint/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/four_fingerprint/shared/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/jni/cmake_install.cmake",
+		"/home/baker/Desktop/projects/office/four_fingerprint/example/linux/build/plugins/jni/shared/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
